@@ -104,6 +104,7 @@ app = Flask(__name__)
 def status():
     if request.method == 'POST':
         username: str = str(request.form.get('username'))
+        print(username)
         password: str = str(request.form.get('password'))
         login(username, password)
         status = clock_status()
@@ -111,7 +112,7 @@ def status():
     return "Please send a form post request"
 
 
-@app.route('/aggietime/', methods=['GET', 'POST'])
+@app.route('/aggietime', methods=['GET', 'POST'])
 def main():
     if request.method == 'POST':
         username: str = str(request.form.get('username'))
@@ -125,6 +126,6 @@ def main():
 
 if __name__ == "__main__":
     s = requests.Session()
-    # context = ('/etc/letsencrypt/live/jrmoulton.com-0001/fullchain.pem',
-    # '/etc/letsencrypt/live/jrmoulton.com-0001/privkey.pem')
+    context = ('/etc/letsencrypt/live/jrmoulton.com-0001/fullchain.pem',
+               '/etc/letsencrypt/live/jrmoulton.com-0001/privkey.pem')
     app.run()
