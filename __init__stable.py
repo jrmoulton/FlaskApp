@@ -2,36 +2,21 @@ from flask import Flask
 from flask import request
 import requests
 from bs4 import BeautifulSoup as bs
-from typing import List, Any, Tuple, Dict
-import re
 
 app = Flask(__name__)
 
 logged_in = False
 
 
-def parse_id(text: str, id: str) -> str:
-    print(f"Text is {text}. Id is: {id}")
+def parse(r, id):
+    text = r.text
     soup = bs(text, "html.parser")
     line = soup.find(id=id)
+    print(line)
     return line.get("value")
 
 
-def parse_all_id(r, id: str) -> List[str]:
-    ids: List[str] = []
-    text = r.text
-    soup = bs(text, "html.parser")
-    lines = soup.find_all(id=id)
-    for count, id_line in enumerate(lines):
-        ids[count] = parse_id(id_line, id)
-    return ids
-
-
-def parse_one_id(r, id: str) -> str:
-    return parse_all_id(r, id)[0]
-
-
-def login(username, password, s) -> str:
+def login(username, password, s):
     # Get the initial login page with the sync token
     r_one = s.get('https://aggietime.usu.edu/login/auth')
     print(r_one.status_code)
@@ -39,8 +24,8 @@ def login(username, password, s) -> str:
         print('Succesful initial!')
     else:
         print("failure at initial")
-    sync_token = parse_one_id(r_one, 'SYNCHRONIZER_TOKEN')
-    sync_uri = parse_one_id(r_one, 'SYNCHRONIZER_URI')
+    sync_token = parse(r_one, 'SYNCHRONIZER_TOKEN')
+    sync_uri = parse(r_one, 'SYNCHRONIZER_URI')
 
     # Sign in to the initial login page
     length = str(len(
@@ -66,10 +51,13 @@ def login(username, password, s) -> str:
         return "Failure logging in\n"
 
 
-def get_dashboard(s) -> Tuple[Dict[str, str], Any]:
+def get_dashboard(username, password, s):
+
+    if not logged_in:
+        login(username, password, s)
 
     # Get the dashboard page that has the next sync_token
-    variables: Dict[str, str] = {}
+    variables = {}
     print(s.cookies)
     r = s.get("https://aggietime.usu.edu/dashboard")
     print(r.status_code)
@@ -77,17 +65,17 @@ def get_dashboard(s) -> Tuple[Dict[str, str], Any]:
         print('Success at getting dashboard!')
     else:
         print("failure getting dashboard")
-    variables['sync_token'] = parse_one_id(r, 'SYNCHRONIZER_TOKEN')
-    variables['sync_uri'] = parse_one_id(r, 'SYNCHRONIZER_URI')
-    variables['toStatus'] = parse_one_id(r, 'toStatus')
-    variables['posId'] = parse_one_id(r, 'posId')
+    variables['sync_token'] = parse(r, 'SYNCHRONIZER_TOKEN')
+    variables['sync_uri'] = parse(r, 'SYNCHRONIZER_URI')
+    variables['toStatus'] = parse(r, 'toStatus')
+    variables['posId'] = parse(r, 'posId')
 
-    return (variables, r)
+    return variables
 
 
-def punch_clock(inout: str, s) -> str:
+def punch_clock(username, password, inout, s):
 
-    variables, _ = get_dashboard(s)
+    variables = get_dashboard(username, password, s)
 
     length = str(len(
         f"SYNCHRONIZER_TOKEN={variables['sync_token']}&SYNCHRONIZER_URI={variables['sync_uri']}&posId={variables['posId']}&comment=&projectName=&toStatus={inout}"))
@@ -107,85 +95,44 @@ def punch_clock(inout: str, s) -> str:
                data=f"SYNCHRONIZER_TOKEN={variables['sync_token']}&SYNCHRONIZER_URI={variables['sync_uri']}&posId={variables['posId']}&comment=&projectName=&toStatus={inout}", headers=clock_punch_headers)
     if r.status_code == 200:
         if variables['toStatus'] == 'OUT':
-            return 'Success clocking out'
+            return 'Clocked Out'
         else:
-            return 'Success clocking in'
+            return 'Clocked In'
     elif r.status_code == 500:
         return "Error 500. You probably clocked out when you need to clock in"
     else:
         return "Failure punching clock"
 
 
-def clock_status(s) -> str:
-    variables, _ = get_dashboard(s)
+def clock_status(username, password, s):
+    variables = get_dashboard(username, password, s)
     if variables['toStatus'] == "OUT":
-        return "You are clocked in"
+        return "You're clocked in"
     else:
-        return "You are clocked out"
-
-
-def return_last_shift(s):
-    variables, r = get_dashboard(s)
-    pass
-
-
-def edit_shift(id, time_in, time_out):
-    pass
+        return "You're clocked out"
 
 
 @app.route('/aggietime/', methods=['GET', 'POST'])
-def main_clock() -> str:
+def main():
+    s = requests.Session()
     if request.method == 'POST':
-        s = requests.Session()
         username: str = str(request.form.get('username'))
         password: str = str(request.form.get('password'))
         inout: str = str(request.form.get('inout'))
-        if not logged_in:
-            login(username, password, s)
-        r = punch_clock(inout, s)
+        r = punch_clock(username, password, inout, s)
         return r
     return "Please send a form POST request with your login information"
 
 
 @app.route('/aggietime/status/', methods=['GET', 'POST'])
-def main_status() -> str:
+def status():
+    s = requests.Session()
     if request.method == 'POST':
-        s = requests.Session()
         username: str = str(request.form.get('username'))
         password: str = str(request.form.get('password'))
-        if not logged_in:
-            login(username, password, s)
-        status_code = clock_status(s)
+        status_code = clock_status(username, password, s)
         return status_code
     return "Please send a form post request"
-
-
-@app.route('/aggietime/check_positions/', methods=['GET', 'POST'])
-def get_positions() -> str:
-    if request.method == 'POST':
-        s = requests.Session()
-        username: str = str(request.form.get('username'))
-        password: str = str(request.form.get('password'))
-        if not logged_in:
-            login(username, password, s)
-        _, r = get_dashboard(s)
-        # Match up to and including the '(' char
-        find = re.compile(r".*\(")
-        return_string: str = ""
-        positions: List[Tuple[str, str]] = []
-        text = r.text
-        soup = bs(text, "html.parser")
-        tags = soup.find_all(tag="option")
-        for count, tag in enumerate(tags):
-            positions[count] = (tag.get("value"), tag.contents)
-
-        for index in range(len(positions)):
-            name = positions[index][1]
-            name = re.search(find, name).group(0)[:-1]
-            return_string += f"{positions[index][0]}: {name}\n"
-        return return_string
-    else:
-        return "Please send a form post request"
 
 
 if __name__ == "__main__":
