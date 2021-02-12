@@ -14,6 +14,8 @@ def parse_id(text: str, id: str) -> str:
     print(f"Text is {text}. Id is: {id}")
     soup = bs(text, "html.parser")
     line = soup.find(id=id)
+    if line == None:
+        print(text, id)
     return line.get("value")
 
 
@@ -23,7 +25,7 @@ def parse_all_id(r, id: str) -> List[str]:
     soup = bs(text, "html.parser")
     lines = soup.find_all(id=id)
     for count, id_line in enumerate(lines):
-        ids[count] = parse_id(id_line, id)
+        ids[count] = parse_id(id_line.text, id)
     return ids
 
 
@@ -191,5 +193,5 @@ def get_positions() -> str:
 if __name__ == "__main__":
     context = ('/etc/letsencrypt/live/jrmoulton.com/fullchain.pem',
                '/etc/letsencrypt/live/jrmoulton.com//privkey.pem')
-    app.run(debug=True, ssl_context=context, host='jrmoulton.com')
+    app.run(debug=True, ssl_context=context, host='0.0.0.0')
     # app.run()
