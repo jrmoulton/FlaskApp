@@ -7,6 +7,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = { version = "0.4.7", features = ["tls"] }
+rocket = { git = "https://github.com/SergioBenitez/Rocket", features = ["tls"]}
+rocket_contrib = { git = "https://github.com/SergioBenitez/Rocket" }
 reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
+http = "0.2.3"
+futures = "0.3"
+scraper = "0.12.0"
