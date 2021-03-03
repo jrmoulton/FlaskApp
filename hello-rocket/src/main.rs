@@ -56,6 +56,7 @@ async fn login(
     let r_p_login = client
         .post("https://aggietime.usu.edu/j_spring_security_check")
         .body(post_data)
+        .headers(headers)
         .send()
         .await?;
     println!("{}", sync_token);
@@ -130,17 +131,16 @@ fn main() {
 #[test]
 async fn test_login() {
     let timeout = Duration::new(5, 0);
-    let client = ClientBuilder::new().timeout(timeout).build();
+    let client = ClientBuilder::new()
+        .timeout(timeout)
+        .cookie_store(true)
+        .build();
     let client = match client {
         Ok(client) => client,
         Err(error) => panic!(error),
     };
-    let status_url = login(
-        String::from("A02226665"),
-        String::from("***REMOVED***"),
-        &client,
-    )
-    .await
-    .unwrap();
+    let status_url = login(String::from("A02226665"), String::from("password"), &client)
+        .await
+        .unwrap();
     assert!(status_url.contains("dashboard"));
 }

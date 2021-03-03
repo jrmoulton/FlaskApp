@@ -99,12 +99,39 @@ checksum = "28b9d6de7f49e22cf97ad17fc4036ece69300032f45f78f30b4a4482cdc3f4a6"
 
 [[package]]
 name = "cookie"
+version = "0.14.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "784ad0fbab4f3e9cef09f20e0aea6000ae08d2cb98ac4c0abc53df18803d702f"
+dependencies = [
+ "percent-encoding",
+ "time",
+ "version_check",
+]
+
+[[package]]
+name = "cookie"
 version = "0.15.0-dev"
 source = "git+https://github.com/SergioBenitez/cookie-rs.git?rev=1c3ca83#1c3ca838543b60a4448d279dc4b903cc7a2bc22a"
 dependencies = [
  "percent-encoding",
  "time",
  "version_check",
+]
+
+[[package]]
+name = "cookie_store"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3818dfca4b0cb5211a659bbcbb94225b7127407b2b135e650d717bfb78ab10d3"
+dependencies = [
+ "cookie 0.14.3",
+ "idna",
+ "log",
+ "publicsuffix",
+ "serde",
+ "serde_json",
+ "time",
+ "url",
 ]
 
 [[package]]
@@ -990,6 +1017,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "publicsuffix"
+version = "1.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95b4ce31ff0a27d93c8de1849cf58162283752f065a90d508f1105fa6c9a213f"
+dependencies = [
+ "idna",
+ "url",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1135,6 +1172,8 @@ checksum = "0460542b551950620a3648c6aa23318ac6b3cd779114bd873209e6e8b5eb1c34"
 dependencies = [
  "base64",
  "bytes",
+ "cookie 0.14.3",
+ "cookie_store",
  "encoding_rs",
  "futures-core",
  "futures-util",
@@ -1153,6 +1192,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_urlencoded",
+ "time",
  "tokio",
  "tokio-native-tls",
  "url",
@@ -1235,7 +1275,7 @@ name = "rocket_http"
 version = "0.5.0-dev"
 source = "git+https://github.com/SergioBenitez/Rocket#9d45e786bbac67a5fec0b1cd4653997d84dba4e4"
 dependencies = [
- "cookie",
+ "cookie 0.15.0-dev",
  "either",
  "http",
  "hyper",
