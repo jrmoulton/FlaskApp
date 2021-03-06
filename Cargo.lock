@@ -484,10 +484,8 @@ name = "hello-rocket"
 version = "0.1.0"
 dependencies = [
  "futures",
- "http",
  "reqwest",
  "rocket",
- "rocket_contrib",
  "scraper",
  "tokio",
 ]
@@ -1256,18 +1254,6 @@ dependencies = [
  "indexmap",
  "quote",
  "rocket_http",
-]
-
-[[package]]
-name = "rocket_contrib"
-version = "0.5.0-dev"
-source = "git+https://github.com/SergioBenitez/Rocket#9d45e786bbac67a5fec0b1cd4653997d84dba4e4"
-dependencies = [
- "log",
- "rocket",
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]
