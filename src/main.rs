@@ -313,7 +313,7 @@ mod tests {
     #[tokio::test]
     async fn test_login() {
         let client = new_client();
-        let status = login("A02226665", "***REMOVED***", &client)
+        let status = login("A02226665", "password", &client)
             .await
             .unwrap();
         assert!(status.url().to_string().contains("dashboard"));
