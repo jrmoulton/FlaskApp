@@ -57,6 +57,11 @@ async fn rocket_main() -> _ {
         })
 }
 
+#[post("/aggietime")]
+async fn outdated() -> &'static str {
+    "Please add 'punch' to the address. IE https://jrmoulton.com/aggietime/punch"
+}
+
 #[get("/aggietime/punch")]
 fn punch_clock_get() -> &'static str {
     "Please send a post request with the form values to log in"
