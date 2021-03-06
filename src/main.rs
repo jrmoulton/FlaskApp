@@ -49,7 +49,7 @@ async fn rocket_main() -> _ {
     rocket::ignite()
         .mount(
             "/",
-            routes![punch_clock, punch_clock_get, status, update_shift],
+            routes![punch_clock, punch_clock_get, status, update_shift, outdated],
         )
         .manage(Session {
             client: new_client(),
