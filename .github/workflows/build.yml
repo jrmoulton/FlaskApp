@@ -13,10 +13,12 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          override: true
+          components: rustfmt, clippy
       - name: build
         uses: actions-rs/cargo@v1
         with:
-          command: build
+          command: build --release
       - name: test
         uses: actions-rs/cargo@v1
         with:
