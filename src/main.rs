@@ -8,8 +8,7 @@ use reqwest::header::{
     CONTENT_TYPE, HOST, ORIGIN, REFERER, USER_AGENT,
 };
 use reqwest::{Client, ClientBuilder};
-use rocket::request::Form;
-use rocket::State;
+use rocket::form::Form;
 use scraper::{Html, Selector};
 use std::time::Duration;
 
@@ -34,127 +33,28 @@ struct UpdateForm {
     reload: Option<bool>,
 }
 
-struct Session {
-    client: Client,
-    logged_in: bool,
-}
 #[derive(PartialEq, Eq)]
 enum ClockStatus {
-    IN,
-    OUT,
+    In,
+    Out,
 }
 
 #[launch]
 async fn rocket_main() -> _ {
-    rocket::ignite()
-        .mount(
-            "/",
-            routes![punch_clock, punch_clock_get, status, update_shift, outdated],
-        )
-        .manage(Session {
-            client: new_client(),
-            logged_in: false,
-        })
+    rocket::ignite().mount("/", routes![punch_clock, punch_clock_get, status, outdated])
 }
 
-#[post("/aggietime")]
-async fn outdated() -> &'static str {
-    "Please add 'punch' to the address. IE https://jrmoulton.com/aggietime/punch"
-}
-
-#[get("/aggietime/punch")]
-fn punch_clock_get() -> &'static str {
-    "Please send a post request with the form values to log in"
-}
-#[post("/aggietime/punch", data = "<punchform>")]
-async fn punch_clock(punchform: Form<PunchForm>, state: State<'_, Session>) -> String {
-    let client = &state.client;
-    let r_login = login(&punchform.username, &punchform.password, client, &state).await;
-    let r_login = match r_login {
-        Ok(r_login) => r_login,
-        Err(error_msg) => return error_msg,
-    };
-    let r_login_url = r_login.url().to_string();
-    let vals = get_sync_values(
-        r_login,
-        vec!["SYNCHRONIZER_TOKEN", "SYNCHRONIZER_URI", "posId"],
-    )
-    .await;
-    let r_p_punch = client
-        .post("https://aggietime.usu.edu/dashboard/clock/punch")
-        .headers(construct_headers(r_login_url))
-        .body(format!(
-            "SYNCHRONIZER_TOKEN={}&SYNCHRONIZER_URI={}&posId={}&comment=&projectName=&toStatus={}",
-            vals[0], vals[1], vals[2], punchform.inout
-        ))
-        .send()
-        .await;
-    let result = match r_p_punch {
-        Ok(_) => String::from(format!(
-            "Success clocking {}!",
-            punchform.inout.to_ascii_lowercase()
-        )),
-        Err(_) => String::from(format!(
-            "Failed to clocked {}.",
-            punchform.inout.to_ascii_lowercase()
-        )),
-    };
-    result
-}
-
-#[post("/aggietime/status", data = "<statusform>")]
-async fn status(statusform: Form<StatusForm>, state: State<'_, Session>) -> String {
-    let client = &state.client;
-    let r_login = login(&statusform.username, &statusform.password, client, &state).await;
-    let r_login = match r_login {
-        Ok(r_login) => r_login,
-        Err(_) => return String::from("Failure logging in"),
-    };
-    let r_login_text = r_login.text().await.unwrap();
-    let status = get_status(client, &r_login_text).await;
-    if status == ClockStatus::IN {
-        String::from("You are clocked in")
-    } else {
-        String::from("You are clocked out")
-    }
-}
-async fn get_status(client: &Client, r_text: &str) -> ClockStatus {
-    let to_status = parse_attr(&r_text, "input", "id", "toStatus", "value")
-        .await
-        .unwrap();
-    if to_status == "OUT" {
-        ClockStatus::IN
-    } else {
-        ClockStatus::OUT
-    }
-}
-
-async fn get_dashboard(client: &Client) -> Result<reqwest::Response, String> {
-    let r_get_login = client
-        .get("https://aggietime.usu.edu/dashboard")
-        .send()
-        .await;
-    let r_get_login = match r_get_login {
-        Ok(r) => return Ok(r),
-        Err(_) => return Err(String::from("Failed to get the dashboard")),
-    };
-}
-
-/*#[post("/aggietime/get")]
-async fn get_shift()*/
-
-#[post("/aggietime/update", data = "<updateform>")]
-async fn update_shift(updateform: Form<UpdateForm>, state: State<'_, Session>) -> String {
-    let client = &state.client;
+#[post("/aggietime/get_shift", data = "<statusform>")]
+async fn get_shift(statusform: Form<StatusForm>) -> String {
+    let client = &new_client();
     let r_login: reqwest::Response;
-    let r_login = login(&updateform.username, &updateform.password, client, &state).await;
+    let r_login = login(&statusform.username, &statusform.password, client).await;
     let r_login = match r_login {
         Ok(r_login) => r_login,
         Err(error_msg) => return error_msg,
     };
     let text = r_login.text().await.unwrap();
-    let mut futures = Vec::new();
-    futures.push(parse_attr(&text, "input", "name", "id", "value")); // shift_id
+    let mut futures = vec![parse_attr(&text, "input", "name", "id", "value")]; // shift_id
     futures.push(parse_attr(
         &text,
         "span",
@@ -184,47 +84,127 @@ async fn update_shift(updateform: Form<UpdateForm>, state: State<'_, Session>) -
     format!("{}: {}: {}: {}", event_date, shift_id, time_in, time_out)
 }
 
+#[post("/aggietime")]
+async fn outdated() -> &'static str {
+    "Error: Please add 'punch' to the address. IE https://jrmoulton.com/aggietime/punch"
+}
+
+#[get("/aggietime/punch")]
+fn punch_clock_get() -> &'static str {
+    "Please send a post request with the form values to log in"
+}
+#[post("/aggietime/punch", data = "<punchform>")]
+async fn punch_clock(punchform: Form<PunchForm>) -> String {
+    let client = &new_client();
+    let r_login = login(&punchform.username, &punchform.password, client).await;
+    let r_login = match r_login {
+        Ok(r_login) => r_login,
+        Err(error_msg) => return error_msg,
+    };
+    let r_login_url = r_login.url().to_string();
+    let vals = get_sync_values(
+        r_login,
+        vec!["SYNCHRONIZER_TOKEN", "SYNCHRONIZER_URI", "posId"],
+    )
+    .await;
+    let r_p_punch = client
+        .post("https://aggietime.usu.edu/dashboard/clock/punch")
+        .headers(construct_headers(r_login_url))
+        .body(format!(
+            "SYNCHRONIZER_TOKEN={}&SYNCHRONIZER_URI={}&posId={}&comment=&projectName=&toStatus={}",
+            vals[0], vals[1], vals[2], punchform.inout
+        ))
+        .send()
+        .await;
+    let result = match r_p_punch {
+        Ok(_) => format!("Success clocking {}!", punchform.inout.to_ascii_lowercase()),
+        Err(_) => String::from(format!(
+            "Failed to clocked {}.",
+            punchform.inout.to_ascii_lowercase()
+        )),
+    };
+    result
+}
+
+#[post("/aggietime/status", data = "<statusform>")]
+async fn status(statusform: Form<StatusForm>) -> String {
+    let client = &new_client();
+    let r_login = login(&statusform.username, &statusform.password, client).await;
+    let r_login = match r_login {
+        Ok(r_login) => r_login,
+        Err(_) => return String::from("Failure logging in"),
+    };
+    let r_login_text = r_login.text().await.unwrap();
+    let status = get_status(client, &r_login_text).await;
+    if status == ClockStatus::In {
+        String::from("You are clocked in")
+    } else {
+        String::from("You are clocked out")
+    }
+}
+
+async fn get_status(client: &Client, r_text: &str) -> ClockStatus {
+    let to_status = parse_attr(&r_text, "input", "id", "toStatus", "value")
+        .await
+        .unwrap();
+    if to_status == "OUT" {
+        ClockStatus::In
+    } else {
+        ClockStatus::Out
+    }
+}
+
+/*#[post("/aggietime/update", data = "<updateform>")]
+async fn update_shift(updateform: Form<UpdateForm>, state: State<'_, Session>) -> String {
+
+}*/
+
 async fn login(
     username: &str,
     password: &str,
     client: &Client,
-    state: &State<'_, Session>,
 ) -> Result<reqwest::Response, String> {
-    if !state.logged_in {
-        let r_get_login = client
-            .get("https://aggietime.usu.edu/login/auth")
-            .send()
-            .await;
-        let r_get_login = match r_get_login {
-            Ok(r) => r,
-            Err(_) => return Err(String::from("Failed to get the initial login page")),
-        };
-        let mut headers = construct_headers(r_get_login.url().to_string());
-        let vals =
-            get_sync_values(r_get_login, vec!["SYNCHRONIZER_TOKEN", "SYNCHRONIZER_URI"]).await;
-        let post_data = format!(
-            "SYNCHRONIZER_TOKEN={}&SYNCHRONIZER_URI={}&j_username={}&j_password={}&login-submit=",
-            vals[0], vals[1], username, password
-        );
-        headers.append(
-            CONTENT_LENGTH,
-            HeaderValue::from_str(&post_data.len().to_string()).unwrap(),
-        );
-        let r_p_login = client
-            .post("https://aggietime.usu.edu/j_spring_security_check")
-            .body(post_data)
-            .headers(headers)
-            .send()
-            .await
-            .unwrap();
-        if r_p_login.url().to_string().contains("dashboard") {
-            Ok(r_p_login)
-        } else {
-            Err(String::from("Failed to log in"))
-        }
+    let r_get_login = client
+        .get("https://aggietime.usu.edu/login/auth")
+        .send()
+        .await;
+    let r_get_login = match r_get_login {
+        Ok(r) => r,
+        Err(_) => return Err(String::from("Failed to get the initial login page")),
+    };
+    let mut headers = construct_headers(r_get_login.url().to_string());
+    let vals = get_sync_values(r_get_login, vec!["SYNCHRONIZER_TOKEN", "SYNCHRONIZER_URI"]).await;
+    let post_data = format!(
+        "SYNCHRONIZER_TOKEN={}&SYNCHRONIZER_URI={}&j_username={}&j_password={}&login-submit=",
+        vals[0], vals[1], username, password
+    );
+    headers.append(
+        CONTENT_LENGTH,
+        HeaderValue::from_str(&post_data.len().to_string()).unwrap(),
+    );
+    let r_p_login = client
+        .post("https://aggietime.usu.edu/j_spring_security_check")
+        .body(post_data)
+        .headers(headers)
+        .send()
+        .await
+        .unwrap();
+    if r_p_login.url().to_string().contains("dashboard") {
+        Ok(r_p_login)
     } else {
-        Ok(get_dashboard(client).await?)
+        Err(String::from("Failed to log in"))
     }
+}
+
+async fn _get_dashboard(client: &Client) -> Result<reqwest::Response, String> {
+    let r_get_login = client
+        .get("https://aggietime.usu.edu/dashboard")
+        .send()
+        .await;
+    let r_get_login = match r_get_login {
+        Ok(r) => return Ok(r),
+        Err(_) => return Err(String::from("Failed to get the dashboard")),
+    };
 }
 
 fn new_client() -> Client {
@@ -312,15 +292,13 @@ fn construct_headers(r_get_url: String) -> HeaderMap {
     headers
 }
 
-#[cfg(test)]
-mod tests {
-    /*use super::*;
-    #[tokio::test]
-    async fn test_login() {
-        let client = new_client();
-        let status = login("A02226665", "password", &client)
-            .await
-            .unwrap();
-        assert!(status.url().to_string().contains("dashboard"));
-    }*/
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     #[tokio::test]
+//     async fn test_login() {
+//         let client = new_client();
+//         let status = login("A02226665", "password", &client).await.unwrap();
+//         assert!(status.url().to_string().contains("dashboard"));
+//     }
+// }
