@@ -1,4 +1,5 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+//#![feature(proc_macro_hygiene, decl_macro)]
+#![warn(clippy::all)]
 #![allow(unused_variables)]
 #[macro_use]
 extern crate rocket;
@@ -41,7 +42,7 @@ enum ClockStatus {
 
 #[launch]
 async fn rocket_main() -> _ {
-    rocket::ignite().mount("/", routes![punch_clock, punch_clock_get, status, outdated])
+    rocket::mount("/", routes![punch_clock, punch_clock_get, status, outdated])
 }
 
 #[post("/aggietime/get_shift", data = "<statusform>")]
@@ -215,7 +216,7 @@ fn new_client() -> Client {
         .build();
     let client = match client {
         Ok(client) => client,
-        Err(error) => panic!(error),
+        Err(error) => panic!("{}", error),
     };
     client
 }
