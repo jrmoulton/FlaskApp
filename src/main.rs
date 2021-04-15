@@ -41,8 +41,8 @@ enum ClockStatus {
 }
 
 #[launch]
-async fn rocket_main() -> _ {
-    rocket::mount("/", routes![punch_clock, punch_clock_get, status, outdated])
+async fn rocket() -> _ {
+    rocket::build().mount("/", routes![punch_clock, punch_clock_get, status, outdated])
 }
 
 #[post("/aggietime/get_shift", data = "<statusform>")]
