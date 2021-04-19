@@ -4,7 +4,11 @@
 2. Parse the sync token
 
 3. Send the auth_login with the sync token - 
+<<<<<<< HEAD
     https://aggietime.usu.edu/j_spring_security_check - SYNCHRONIZER_TOKEN=db388094-cb3b-4e6e-ad1d-ffcdbc67cb82&SYNCHRONIZER_URI=%2Flogin%2Fauth&j_username=A02226665&j_password=&login-submit=
+=======
+    https://aggietime.usu.edu/j_spring_security_check - SYNCHRONIZER_TOKEN=db388094-cb3b-4e6e-ad1d-ffcdbc67cb82&SYNCHRONIZER_URI=%2Flogin%2Fauth&j_username=A02226665&j_password=***REMOVED***&login-submit=
+>>>>>>> ca2a14da4f7ba25e789435667c10cd67e783d1be
 
 4. Get the session id cookie from the response and send it with the request to aggietime.usu.edu/dashboard
 
