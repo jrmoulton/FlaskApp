@@ -226,7 +226,7 @@ dependencies = [
 [[package]]
 name = "devise"
 version = "0.3.0"
-source = "git+https://github.com/SergioBenitez/Devise.git?rev=df00b5#df00b5162edd53e8d496e7935774e69b5f7f6bdf"
+source = "git+https://github.com/SergioBenitez/Devise.git?rev=f2431b#f2431bd122f55b03c3bc5b1c8d2267894d3c8142"
 dependencies = [
  "devise_codegen",
  "devise_core",
@@ -235,7 +235,7 @@ dependencies = [
 [[package]]
 name = "devise_codegen"
 version = "0.3.0"
-source = "git+https://github.com/SergioBenitez/Devise.git?rev=df00b5#df00b5162edd53e8d496e7935774e69b5f7f6bdf"
+source = "git+https://github.com/SergioBenitez/Devise.git?rev=f2431b#f2431bd122f55b03c3bc5b1c8d2267894d3c8142"
 dependencies = [
  "devise_core",
  "quote",
@@ -244,7 +244,7 @@ dependencies = [
 [[package]]
 name = "devise_core"
 version = "0.3.0"
-source = "git+https://github.com/SergioBenitez/Devise.git?rev=df00b5#df00b5162edd53e8d496e7935774e69b5f7f6bdf"
+source = "git+https://github.com/SergioBenitez/Devise.git?rev=f2431b#f2431bd122f55b03c3bc5b1c8d2267894d3c8142"
 dependencies = [
  "bitflags",
  "proc-macro2",
@@ -1299,7 +1299,7 @@ dependencies = [
 [[package]]
 name = "rocket"
 version = "0.5.0-dev"
-source = "git+https://github.com/SergioBenitez/Rocket#bf9de1d39e0b33c0172f89f98a43e266e9ae5bd7"
+source = "git+https://github.com/SergioBenitez/Rocket#41d7138540ca5fedbdfe5bc07cff8555c50b045b"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -1335,7 +1335,7 @@ dependencies = [
 [[package]]
 name = "rocket_codegen"
 version = "0.5.0-dev"
-source = "git+https://github.com/SergioBenitez/Rocket#bf9de1d39e0b33c0172f89f98a43e266e9ae5bd7"
+source = "git+https://github.com/SergioBenitez/Rocket#41d7138540ca5fedbdfe5bc07cff8555c50b045b"
 dependencies = [
  "devise",
  "glob",
@@ -1350,7 +1350,7 @@ dependencies = [
 [[package]]
 name = "rocket_http"
 version = "0.5.0-dev"
-source = "git+https://github.com/SergioBenitez/Rocket#bf9de1d39e0b33c0172f89f98a43e266e9ae5bd7"
+source = "git+https://github.com/SergioBenitez/Rocket#41d7138540ca5fedbdfe5bc07cff8555c50b045b"
 dependencies = [
  "cookie 0.15.0",
  "either",
