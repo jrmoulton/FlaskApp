@@ -294,9 +294,9 @@ dependencies = [
 
 [[package]]
 name = "figment"
-version = "0.10.5"
+version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ca029e813a72b7526d28273d25f3e4a2f365d1b7a1018a6f93ec9053a119763"
+checksum = "790b4292c72618abbab50f787a477014fe15634f96291de45672ce46afe122df"
 dependencies = [
  "atomic",
  "pear",
@@ -1276,7 +1276,7 @@ dependencies = [
 [[package]]
 name = "rocket"
 version = "0.5.0-rc.1"
-source = "git+https://github.com/SergioBenitez/Rocket#abf996b026b601abb193d2f2081887b1de5e6ced"
+source = "git+https://github.com/SergioBenitez/Rocket#9ce2935fe1e0aeb65bacbd9cddf265a068022dae"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -1313,7 +1313,7 @@ dependencies = [
 [[package]]
 name = "rocket_codegen"
 version = "0.5.0-rc.1"
-source = "git+https://github.com/SergioBenitez/Rocket#abf996b026b601abb193d2f2081887b1de5e6ced"
+source = "git+https://github.com/SergioBenitez/Rocket#9ce2935fe1e0aeb65bacbd9cddf265a068022dae"
 dependencies = [
  "devise",
  "glob",
@@ -1328,7 +1328,7 @@ dependencies = [
 [[package]]
 name = "rocket_http"
 version = "0.5.0-rc.1"
-source = "git+https://github.com/SergioBenitez/Rocket#abf996b026b601abb193d2f2081887b1de5e6ced"
+source = "git+https://github.com/SergioBenitez/Rocket#9ce2935fe1e0aeb65bacbd9cddf265a068022dae"
 dependencies = [
  "cookie 0.15.0",
  "either",
